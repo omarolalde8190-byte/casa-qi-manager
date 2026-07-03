@@ -588,35 +588,49 @@ function setReparacionMsg(text,type){
   if(msg){ msg.textContent=text; msg.className="notice "+type; }
 }
 function enviarReparacionChecklist(){
-  var txtEl=document.getElementById("checklistReparacion");
-  var roomEl=document.getElementById("checklistRoomNumber");
-  var formChecklist=document.getElementById("checklistForm");
-  var txt=txtEl ? txtEl.value.trim() : "";
-  if(!txt){ setReparacionMsg("Escribe qué se necesita reparar.","error"); return; }
-  if(!window.CASA_QI_SCRIPT_URL || window.CASA_QI_SCRIPT_URL.indexOf("PEGA_AQUI")>=0){
-    setReparacionMsg("Falta conectar Google Sheets.","error"); return;
+  var txtEl = document.getElementById("checklistReparacion");
+  var roomEl = document.getElementById("checklistRoomNumber");
+  var formChecklist = document.getElementById("checklistForm");
+  var txt = txtEl ? txtEl.value.trim() : "";
+
+  if(!txt){
+    setReparacionMsg("Escribe qué se necesita reparar.","error");
+    return;
   }
-  var empleado="";
-  if(formChecklist && formChecklist.elements.empleado){ empleado=formChecklist.elements.empleado.value || ""; }
-  var data={
-    tipoRegistro:"cosasPorReparar",
-    fechaRegistro:new Date().toLocaleString("es-MX"),
-    habitacion:roomEl ? roomEl.value : "",
-    trabajador:empleado,
-    descripcion:txt,
-    estado:"Pendiente"
+
+  if(!window.CASA_QI_SCRIPT_URL || window.CASA_QI_SCRIPT_URL.indexOf("PEGA_AQUI") >= 0){
+    setReparacionMsg("Falta conectar Google Sheets.","error");
+    return;
+  }
+
+  var empleado = "";
+  if(formChecklist && formChecklist.elements.empleado){
+    empleado = formChecklist.elements.empleado.value || "";
+  }
+
+  var data = {
+    tipoRegistro: "cosasPorReparar",
+    modulo: "cosasPorReparar",
+    fechaRegistro: new Date().toLocaleString("es-MX"),
+    trabajador: empleado,
+    habitacion: roomEl ? roomEl.value : "",
+    descripcion: txt,
+    cosasPorReparar: txt,
+    estado: "Pendiente"
   };
+
   setReparacionMsg("Enviando reparación a Google Sheets...","ok");
-  fetch(window.CASA_QI_SCRIPT_URL,{
-    method:"POST",
-    mode:"no-cors",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify(data)
+
+  fetch(window.CASA_QI_SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify(data)
   }).then(function(){
     setReparacionMsg("Reparación enviada correctamente.","ok");
-    if(txtEl){ txtEl.value=""; }
+    if(txtEl){ txtEl.value = ""; }
   }).catch(function(err){
-    setReparacionMsg("No se pudo enviar: "+err.message,"error");
+    setReparacionMsg("No se pudo enviar: " + err.message, "error");
   });
 }
 function cargarCosasPorReparar(){
