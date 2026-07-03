@@ -1,31 +1,30 @@
-const CACHE_NAME = "casa-qi-manager-v1";
-const ASSETS = [
-  "./",
-  "./index.html",
-  "./config.js",
-  "./manifest.json",
-  "./service-worker.js",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./fotos/placeholder.svg"
-];
+# Casa Qi Manager Master v2.0
 
-self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
-  self.skipWaiting();
-});
+Proyecto maestro para la aplicación interna de Casa Qi Hotel Boutique.
 
-self.addEventListener("activate", event => {
-  event.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.map(key => key !== CACHE_NAME ? caches.delete(key) : null))
-  ));
-  self.clients.claim();
-});
+## Estado del proyecto
 
-self.addEventListener("fetch", event => {
-  event.respondWith(
-    caches.match(event.request).then(cached =>
-      cached || fetch(event.request).catch(() => caches.match("./index.html"))
-    )
-  );
-});
+- Conectado a GitHub.
+- Preparado para Netlify.
+- Preparado como PWA.
+- Preparado para Google Sheets mediante Apps Script.
+
+## Estructura
+
+- `index.html`: aplicación principal.
+- `config.js`: URL de Google Apps Script.
+- `manifest.json`: instalación como app/PWA.
+- `service-worker.js`: caché de la PWA.
+- `netlify.toml`: configuración de Netlify.
+- `icons/`: iconos usados por la PWA.
+- `fotos/`: compatibilidad con fotos actuales.
+- `assets/`: estructura organizada para nuevas imágenes.
+- `google-apps-script/codigo.gs`: script maestro actual para Google Sheets.
+- `docs/`: documentación del proyecto.
+
+## Importante
+
+Para actualizar el sitio:
+1. Subir/reemplazar estos archivos en GitHub.
+2. Hacer Commit.
+3. Netlify publicará automáticamente en casaqitrabajadores.netlify.app.

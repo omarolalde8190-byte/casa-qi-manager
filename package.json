@@ -1,6 +1,8 @@
-{
-  "name": "casa-qi-manager",
-  "version": "1.0.0",
-  "description": "Sistema de operación de Casa Qi Hotel Boutique",
-  "private": true
-}
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/service-worker.js"
+  [headers.values]
+    Cache-Control = "no-cache"
