@@ -1,8 +1,5 @@
-[build]
-  publish = "."
-  command = ""
-
-[[headers]]
-  for = "/service-worker.js"
-  [headers.values]
-    Cache-Control = "no-cache"
+{
+  "name": "casa-qi-manager",
+  "version": "2.0.0",
+  "private": true
+}
