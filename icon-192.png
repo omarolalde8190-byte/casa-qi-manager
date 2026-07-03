@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600">
+<rect width="900" height="600" fill="#eef3f0"/>
+<rect x="55" y="55" width="790" height="490" rx="35" fill="#ffffff" stroke="#d9e1dc" stroke-width="4"/>
+<text x="450" y="265" font-family="Arial" font-size="42" fill="#2f6f5e" text-anchor="middle">Foto pendiente</text>
+<text x="450" y="325" font-family="Arial" font-size="25" fill="#5f6b66" text-anchor="middle">Aquí se colocará la foto real</text>
+</svg>
