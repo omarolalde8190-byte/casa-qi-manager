@@ -193,6 +193,76 @@ label{display:block;margin-top:14px;margin-bottom:6px;font-weight:bold;color:#24
 .repair-date{font-size:13px;font-weight:800;color:#5b5348;background:#fff;padding:6px 10px;border-radius:999px;border:1px solid #e7ded0}
 .repair-text{font-size:16px;line-height:1.35;color:#243a34;margin-top:8px}
 .repair-worker{font-size:14px;color:#666;margin-top:6px}
+
+/* Reparaciones v2.7 - edición manual */
+.repair-controls{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.repair-controls label{
+  margin-top:0!important;
+  font-size:13px;
+}
+.repair-controls select,
+.repair-controls textarea{
+  font-size:15px;
+}
+.repair-controls textarea{
+  min-height:70px;
+  grid-column:1 / -1;
+}
+.repair-save{
+  grid-column:1 / -1;
+  margin-top:0!important;
+}
+.repair-msg{
+  grid-column:1 / -1;
+  font-size:14px;
+  font-weight:bold;
+  margin-top:4px;
+}
+@media(max-width:560px){
+  .repair-controls{grid-template-columns:1fr}
+}
+
+/* Reparaciones editables fix v2.7.1 */
+.repair-controls{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:10px!important;
+  margin-top:12px!important;
+}
+.repair-controls label{
+  margin-top:0!important;
+  margin-bottom:6px!important;
+  font-size:13px!important;
+  font-weight:800!important;
+  color:var(--verde2)!important;
+}
+.repair-controls select,
+.repair-controls textarea{
+  width:100%!important;
+  font-size:15px!important;
+}
+.repair-controls textarea{
+  min-height:76px!important;
+  grid-column:1 / -1!important;
+}
+.repair-save{
+  grid-column:1 / -1!important;
+  margin-top:0!important;
+}
+.repair-msg{
+  grid-column:1 / -1!important;
+  font-size:14px!important;
+  font-weight:bold!important;
+  margin-top:4px!important;
+}
+@media(max-width:560px){
+  .repair-controls{grid-template-columns:1fr!important}
+}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f4a56">
@@ -588,73 +658,101 @@ function setReparacionMsg(text,type){
   if(msg){ msg.textContent=text; msg.className="notice "+type; }
 }
 function enviarReparacionChecklist(){
-  var txtEl = document.getElementById("checklistReparacion");
-  var roomEl = document.getElementById("checklistRoomNumber");
-  var formChecklist = document.getElementById("checklistForm");
-  var txt = txtEl ? txtEl.value.trim() : "";
-
-  if(!txt){
-    setReparacionMsg("Escribe qué se necesita reparar.","error");
-    return;
+  var txtEl=document.getElementById("checklistReparacion");
+  var roomEl=document.getElementById("checklistRoomNumber");
+  var formChecklist=document.getElementById("checklistForm");
+  var txt=txtEl ? txtEl.value.trim() : "";
+  if(!txt){ setReparacionMsg("Escribe qué se necesita reparar.","error"); return; }
+  if(!window.CASA_QI_SCRIPT_URL || window.CASA_QI_SCRIPT_URL.indexOf("PEGA_AQUI")>=0){
+    setReparacionMsg("Falta conectar Google Sheets.","error"); return;
   }
-
-  if(!window.CASA_QI_SCRIPT_URL || window.CASA_QI_SCRIPT_URL.indexOf("PEGA_AQUI") >= 0){
-    setReparacionMsg("Falta conectar Google Sheets.","error");
-    return;
-  }
-
-  var empleado = "";
-  if(formChecklist && formChecklist.elements.empleado){
-    empleado = formChecklist.elements.empleado.value || "";
-  }
-
-  var data = {
-    tipoRegistro: "cosasPorReparar",
-    modulo: "cosasPorReparar",
-    fechaRegistro: new Date().toLocaleString("es-MX"),
-    trabajador: empleado,
-    habitacion: roomEl ? roomEl.value : "",
-    descripcion: txt,
-    cosasPorReparar: txt,
-    estado: "Pendiente"
+  var empleado="";
+  if(formChecklist && formChecklist.elements.empleado){ empleado=formChecklist.elements.empleado.value || ""; }
+  var data={
+    tipoRegistro:"cosasPorReparar",
+    fechaRegistro:new Date().toLocaleString("es-MX"),
+    habitacion:roomEl ? roomEl.value : "",
+    trabajador:empleado,
+    descripcion:txt,
+    estado:"Pendiente"
   };
-
   setReparacionMsg("Enviando reparación a Google Sheets...","ok");
-
-  fetch(window.CASA_QI_SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: {"Content-Type":"text/plain;charset=utf-8"},
-    body: JSON.stringify(data)
+  fetch(window.CASA_QI_SCRIPT_URL,{
+    method:"POST",
+    mode:"no-cors",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify(data)
   }).then(function(){
     setReparacionMsg("Reparación enviada correctamente.","ok");
-    if(txtEl){ txtEl.value = ""; }
+    if(txtEl){ txtEl.value=""; }
   }).catch(function(err){
-    setReparacionMsg("No se pudo enviar: " + err.message, "error");
+    setReparacionMsg("No se pudo enviar: "+err.message,"error");
   });
 }
 function cargarCosasPorReparar(){
   var cont=document.getElementById("cosasRepararList");
   if(!cont){ return; }
+
   cont.innerHTML='<div class="estado-loading">Cargando reparaciones...</div>';
+
   if(!window.CASA_QI_SCRIPT_URL || window.CASA_QI_SCRIPT_URL.indexOf("PEGA_AQUI")>=0){
-    cont.innerHTML='<div class="estado-loading">Falta conectar Google Sheets.</div>'; return;
+    cont.innerHTML='<div class="estado-loading">Falta conectar Google Sheets.</div>';
+    return;
   }
+
   fetch(window.CASA_QI_SCRIPT_URL + "?tipo=cosasPorReparar")
     .then(function(res){ return res.json(); })
     .then(function(data){
       var items=data.reparaciones || [];
       cont.innerHTML="";
+
       if(items.length===0){
-        cont.innerHTML='<div class="estado-loading">No hay cosas por reparar pendientes.</div>'; return;
+        cont.innerHTML='<div class="estado-loading">No hay cosas por reparar pendientes.</div>';
+        return;
       }
+
       items.forEach(function(r){
         var row=document.createElement("div");
         row.className="repair-row";
-        row.innerHTML='<div class="repair-top"><div class="repair-room">Habitación '+(r.habitacion||"")+'</div><div class="repair-date">'+(r.fecha||"")+'</div></div><div class="repair-text"><strong>Reparación:</strong> '+(r.descripcion||"")+'</div><div class="repair-worker"><strong>Reportó:</strong> '+(r.trabajador||"Sin nombre")+' · <strong>Estado:</strong> '+(r.estado||"Pendiente")+'</div>';
+
+        var estadoActual = r.estado || "Pendiente";
+        var quienActual = r.quienReparo || "";
+        var obsActual = r.observaciones || "";
+        var id = r.id || "";
+
+        row.innerHTML =
+          '<div class="repair-top">' +
+            '<div class="repair-room">Habitación '+(r.habitacion||"")+'</div>' +
+            '<div class="repair-date">'+(r.fecha||"")+'</div>' +
+          '</div>' +
+          '<div class="repair-text"><strong>Reparación:</strong> '+(r.descripcion||"")+'</div>' +
+          '<div class="repair-worker"><strong>Reportó:</strong> '+(r.trabajador||"Sin nombre")+' · <strong>Estado actual:</strong> '+estadoActual+'</div>' +
+          '<div class="repair-controls">' +
+            '<div>' +
+              '<label>Estado</label>' +
+              '<select class="repair-estado">' +
+                '<option value="Pendiente" '+(estadoActual==="Pendiente"?"selected":"")+'>Pendiente</option>' +
+                '<option value="Reparado" '+(estadoActual==="Reparado"?"selected":"")+'>Reparado</option>' +
+                '<option value="Sin arreglar" '+(estadoActual==="Sin arreglar"?"selected":"")+'>Sin arreglar</option>' +
+              '</select>' +
+            '</div>' +
+            '<div>' +
+              '<label>Quién reparó</label>' +
+              '<select class="repair-quien">' +
+                '<option value="">Seleccionar</option>' +
+                '<option value="Juan" '+(quienActual==="Juan"?"selected":"")+'>Juan</option>' +
+                '<option value="Yosmar" '+(quienActual==="Yosmar"?"selected":"")+'>Yosmar</option>' +
+              '</select>' +
+            '</div>' +
+            '<textarea class="repair-observaciones" placeholder="Observaciones de la reparación">'+obsActual+'</textarea>' +
+            '<button class="save repair-save" type="button" data-repair-id="'+id+'">Guardar cambios</button>' +
+            '<div class="repair-msg"></div>' +
+          '</div>';
+
         cont.appendChild(row);
       });
-    }).catch(function(){
+    })
+    .catch(function(){
       cont.innerHTML='<div class="estado-loading">No se pudieron cargar las reparaciones.</div>';
     });
 }
@@ -662,6 +760,53 @@ var enviarReparacionBtn=document.getElementById("enviarReparacionBtn");
 if(enviarReparacionBtn){ enviarReparacionBtn.addEventListener("click", enviarReparacionChecklist); }
 var refreshReparacionesBtn=document.getElementById("refreshReparacionesBtn");
 if(refreshReparacionesBtn){ refreshReparacionesBtn.addEventListener("click", cargarCosasPorReparar); }
+
+
+function guardarCambiosReparacion(btn){
+  var row = btn.closest(".repair-row");
+  var msg = row ? row.querySelector(".repair-msg") : null;
+  if(!row){ return; }
+
+  var id = btn.getAttribute("data-repair-id") || "";
+  var estado = row.querySelector(".repair-estado") ? row.querySelector(".repair-estado").value : "";
+  var quien = row.querySelector(".repair-quien") ? row.querySelector(".repair-quien").value : "";
+  var obs = row.querySelector(".repair-observaciones") ? row.querySelector(".repair-observaciones").value : "";
+
+  if(!id){
+    if(msg){ msg.textContent = "No se encontró el ID de la reparación."; msg.style.color = "#a32020"; }
+    return;
+  }
+
+  if(!window.CASA_QI_SCRIPT_URL || window.CASA_QI_SCRIPT_URL.indexOf("PEGA_AQUI") >= 0){
+    if(msg){ msg.textContent = "Falta conectar Google Sheets."; msg.style.color = "#a32020"; }
+    return;
+  }
+
+  if(msg){ msg.textContent = "Guardando cambios..."; msg.style.color = "#116b34"; }
+
+  fetch(window.CASA_QI_SCRIPT_URL, {
+    method:"POST",
+    mode:"no-cors",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({
+      tipoRegistro:"actualizarCosaPorReparar",
+      id:id,
+      estado:estado,
+      quienReparo:quien,
+      observacionesReparacion:obs,
+      fechaActualizacion:new Date().toLocaleString("es-MX")
+    })
+  }).then(function(){
+    if(msg){ msg.textContent = "Cambios guardados correctamente."; msg.style.color = "#116b34"; }
+  }).catch(function(err){
+    if(msg){ msg.textContent = "No se pudo guardar: " + err.message; msg.style.color = "#a32020"; }
+  });
+}
+
+document.addEventListener("click", function(e){
+  var btn = e.target.closest(".repair-save");
+  if(btn){ guardarCambiosReparacion(btn); }
+});
 
 })();
 
