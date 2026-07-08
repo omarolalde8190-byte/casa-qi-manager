@@ -772,14 +772,16 @@ function cargarEstadoHabitaciones(){
     return;
   }
 
-  fetch(window.CASA_QI_SCRIPT_URL + "?tipo=estadoHabitaciones")
+  fetch(window.CASA_QI_SCRIPT_URL + "?tipo=estadoHabitaciones&soloHoy=1")
     .then(function(res){ return res.json(); })
     .then(function(data){
       var habitaciones = data.habitaciones || [];
+      var hoyLocal = fechaHoyLocalISO();
+      habitaciones = habitaciones.filter(function(h){ return normalizarFechaISO(h.fecha) === hoyLocal; });
       cont.innerHTML = "";
 
       if(habitaciones.length === 0){
-        cont.innerHTML = '<div class="estado-loading">No hay estado de habitaciones capturado en Google Sheets.</div>';
+        cont.innerHTML = '<div class="estado-loading">No hay habitaciones capturadas para la fecha de hoy.</div>';
         return;
       }
 
@@ -1244,6 +1246,32 @@ var refreshAdminReparadasBtn=document.getElementById("refreshAdminReparadasBtn")
 if(refreshAdminReparadasBtn){ refreshAdminReparadasBtn.addEventListener("click", cargarAdminReparadas); }
 
 
+
+function fechaHoyLocalISO(){
+  var d = new Date();
+  var y = d.getFullYear();
+  var m = String(d.getMonth() + 1).padStart(2, "0");
+  var day = String(d.getDate()).padStart(2, "0");
+  return y + "-" + m + "-" + day;
+}
+
+function normalizarFechaISO(fecha){
+  if(!fecha){ return ""; }
+  var txt = String(fecha).trim();
+
+  // Si ya viene yyyy-mm-dd
+  var m1 = txt.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m1){ return m1[1] + "-" + m1[2] + "-" + m1[3]; }
+
+  // Si viene dd/mm/yyyy o dd-mm-yyyy
+  var m2 = txt.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if(m2){
+    return m2[3] + "-" + String(m2[2]).padStart(2,"0") + "-" + String(m2[1]).padStart(2,"0");
+  }
+
+  return txt.slice(0,10);
+}
+
 function renderControlesLimpiezaHabitacion(h){
   if(userAccessLevel !== "limpieza"){
     return "";
@@ -1283,14 +1311,14 @@ function cargarEstadoHabitaciones(){
     return;
   }
 
-  fetch(window.CASA_QI_SCRIPT_URL + "?tipo=estadoHabitaciones")
+  fetch(window.CASA_QI_SCRIPT_URL + "?tipo=estadoHabitaciones&soloHoy=1")
     .then(function(res){ return res.json(); })
     .then(function(data){
       var habitaciones = data.habitaciones || [];
       cont.innerHTML = "";
 
       if(habitaciones.length === 0){
-        cont.innerHTML = '<div class="estado-loading">No hay estado de habitaciones capturado en Google Sheets.</div>';
+        cont.innerHTML = '<div class="estado-loading">No hay habitaciones capturadas para la fecha de hoy.</div>';
         return;
       }
 
