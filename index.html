@@ -357,6 +357,14 @@ label{display:block;margin-top:14px;margin-bottom:6px;font-weight:bold;color:#24
 @media(max-width:560px){
   .estado-limpieza-grid{grid-template-columns:1fr}
 }
+
+/* Estado limpieza v2.9.2 */
+.estado-limpieza-grid{
+  grid-template-columns:1fr 1fr 1fr!important;
+}
+@media(max-width:560px){
+  .estado-limpieza-grid{grid-template-columns:1fr!important}
+}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f4a56">
@@ -1284,17 +1292,22 @@ function renderControlesLimpiezaHabitacion(h){
   return '<div class="estado-limpieza-box">' +
     '<div class="estado-limpieza-actual"><strong>Estado limpieza:</strong> ' +
       (estadoLimpieza ? '<span class="limpia-badge">'+estadoLimpieza+'</span>' : 'Sin marcar') +
-      (limpioPor ? ' · <strong>Limpió:</strong> '+limpioPor : '') +
+      (limpioPor ? ' · <strong>Lo hizo:</strong> '+limpioPor : '') +
       (fechaLimpieza ? ' · <strong>Fecha:</strong> '+fechaLimpieza : '') +
     '</div>' +
     '<div class="estado-limpieza-grid">' +
-      '<div><label>Personal que limpió</label><select class="limpieza-personal">' +
+      '<div><label>Estado limpieza</label><select class="limpieza-estado">' +
+        '<option value="">Seleccionar</option>' +
+        '<option '+(estadoLimpieza==="Limpia"?"selected":"")+'>Limpia</option>' +
+        '<option '+(estadoLimpieza==="Retocada"?"selected":"")+'>Retocada</option>' +
+      '</select></div>' +
+      '<div><label>Personal que lo hizo</label><select class="limpieza-personal">' +
         '<option value="">Seleccionar</option>' +
         '<option '+(limpioPor==="Mary"?"selected":"")+'>Mary</option>' +
         '<option '+(limpioPor==="Yosmar"?"selected":"")+'>Yosmar</option>' +
         '<option '+(limpioPor==="Juan"?"selected":"")+'>Juan</option>' +
       '</select></div>' +
-      '<button class="save marcar-limpia-btn" type="button" data-habitacion="'+(h.habitacion||"")+'" data-fecha="'+(h.fecha||"")+'">Marcar como limpia</button>' +
+      '<button class="save marcar-limpia-btn" type="button" data-habitacion="'+(h.habitacion||"")+'" data-fecha="'+(h.fecha||"")+'">Guardar estado</button>' +
       '<div class="estado-limpieza-msg"></div>' +
     '</div>' +
   '</div>';
@@ -1362,13 +1375,20 @@ function cargarEstadoHabitaciones(){
 function marcarHabitacionLimpia(btn){
   var box = btn.closest(".estado-limpieza-box");
   var msg = box ? box.querySelector(".estado-limpieza-msg") : null;
-  var select = box ? box.querySelector(".limpieza-personal") : null;
-  var personal = select ? select.value : "";
+  var selectPersonal = box ? box.querySelector(".limpieza-personal") : null;
+  var selectEstado = box ? box.querySelector(".limpieza-estado") : null;
+  var personal = selectPersonal ? selectPersonal.value : "";
+  var estadoLimpieza = selectEstado ? selectEstado.value : "";
   var habitacion = btn.getAttribute("data-habitacion") || "";
   var fecha = btn.getAttribute("data-fecha") || "";
 
+  if(!estadoLimpieza){
+    if(msg){ msg.textContent = "Selecciona si está limpia o retocada."; msg.style.color="#a32020"; }
+    return;
+  }
+
   if(!personal){
-    if(msg){ msg.textContent = "Selecciona quién limpió la habitación."; msg.style.color="#a32020"; }
+    if(msg){ msg.textContent = "Selecciona quién lo hizo."; msg.style.color="#a32020"; }
     return;
   }
 
@@ -1382,12 +1402,12 @@ function marcarHabitacionLimpia(btn){
       tipoRegistro:"actualizarEstadoLimpiezaHabitacion",
       habitacion:habitacion,
       fecha:fecha,
-      estadoLimpieza:"Limpia",
+      estadoLimpieza:estadoLimpieza,
       limpioPor:personal,
       fechaLimpieza:new Date().toLocaleString("es-MX")
     })
   }).then(function(){
-    if(msg){ msg.textContent = "Habitación marcada como limpia."; msg.style.color="#116b34"; }
+    if(msg){ msg.textContent = "Estado guardado correctamente."; msg.style.color="#116b34"; }
     setTimeout(cargarEstadoHabitaciones, 600);
   }).catch(function(err){
     if(msg){ msg.textContent = "No se pudo guardar: "+err.message; msg.style.color="#a32020"; }
